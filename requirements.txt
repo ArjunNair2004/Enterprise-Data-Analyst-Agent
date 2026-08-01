@@ -1,0 +1,11 @@
+langchain
+langchain-openai
+langgraph
+chromadb
+sqlalchemy
+psycopg2-binary
+pandas
+streamlit
+python-dotenv
+unstructured
+tabulate
