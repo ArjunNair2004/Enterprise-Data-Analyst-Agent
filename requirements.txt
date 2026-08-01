@@ -9,3 +9,8 @@ streamlit
 python-dotenv
 unstructured
 tabulate
+langchain-community
+langchain-groq
+langchain-huggingface
+sentence-transformers
+torchvision

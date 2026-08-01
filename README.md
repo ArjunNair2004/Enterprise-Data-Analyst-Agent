@@ -46,5 +46,8 @@ Loop Safeguards: Max iteration limits to prevent infinite API loops.
    git commit -m "Add project documentation and architecture"
    git push
 
+API Key
+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
+
 
 
