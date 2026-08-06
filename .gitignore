@@ -1,4 +1,11 @@
-venv/
-__pycache__/
+# Environment & System
 .env
 .DS_Store
+
+# Python / Backend
+venv/
+__pycache__/
+
+# Node / Frontend
+node_modules/
+dist/

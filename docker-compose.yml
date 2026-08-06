@@ -1,15 +1,22 @@
-version: '3.8'
-
 services:
-  postgres:
-    image: postgres:15-alpine
-    container_name: agent_postgres_db
-    environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: password123
-      POSTGRES_DB: ecommerce_db
+  backend:
+    build: ./backend
+    container_name: ai_backend
     ports:
-      - "5432:5432"
+      - "8000:8000"
     volumes:
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    restart: unless-stopped
+      - ./backend:/app
+    environment:
+      # Add any API keys you need here, or load them from a .env file
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+
+  frontend:
+    build: ./frontend
+    container_name: ai_frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
