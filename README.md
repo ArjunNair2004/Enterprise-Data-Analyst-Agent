@@ -2,7 +2,7 @@
 
 
 
-A full-stack, containerized AI application that allows users to interact with and analyze a supermarket dataset using natural language. Built with a decoupled microservice architecture, this project leverages LLMs to generate and execute SQL queries dynamically, providing intuitive data insights.
+A full-stack, containerized AI application that allows users to interact with and analyze any dataset using natural language. Built with a decoupled microservice architecture, this project leverages LLMs to generate and execute SQL queries dynamically, providing intuitive data insights.
 
 
 
