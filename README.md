@@ -290,6 +290,8 @@ The next phase extends the agent from structured CSV data to unstructured corpor
 
 Other ideas:
 
+- **Store billing system integration** – connect to a store's billing or point-of-sale system to answer questions about live sales, invoices, and inventory instead of only uploaded CSV files.
+- **Multi-language voice chat** – voice input and spoken answers in several languages, such as Hindi and other regional languages (currently English only).
 - **Stronger SQL safety** – a read-only connection and a SQL parser instead of keyword checks.
 - **Multi-table datasets** – several CSV files and joins instead of a single replaceable table.
 - **More chart types** – line and pie charts.
