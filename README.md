@@ -2,12 +2,13 @@
 
 # 🤖 Enterprise Data Analyst Agent
 
-**A full-stack, containerized AI application that lets you analyze a dataset in plain English. An LLM turns your question into SQL, runs it against a database, and returns the answer in a React chat interface.**
+**A full-stack, containerized AI data analyst. Import any CSV file, ask questions in plain English, and a LangGraph agent writes and safely runs the SQL, explains the result in simple language, and draws a chart when the data calls for one.**
 
 ![Python](https://img.shields.io/badge/Python-3.x-3776AB?logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-Uvicorn-009688?logo=fastapi&logoColor=white)
+![LangGraph](https://img.shields.io/badge/LangGraph-Agent-1C3C3C?logo=langchain&logoColor=white)
+![Groq](https://img.shields.io/badge/Groq-LLM-F55036)
 ![React](https://img.shields.io/badge/React-Vite-61DAFB?logo=react&logoColor=black)
-![LangChain](https://img.shields.io/badge/LangChain-Groq-1C3C3C?logo=langchain&logoColor=white)
 ![SQLite](https://img.shields.io/badge/SQLite-003B57?logo=sqlite&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
 
@@ -23,7 +24,8 @@
 - [Tech Stack](#️-tech-stack)
 - [System Architecture](#-system-architecture)
 - [Project Structure](#-project-structure)
-- [How Natural Language to SQL Works](#-how-natural-language-to-sql-works)
+- [How the Agent Works](#-how-the-agent-works)
+- [API Endpoints](#-api-endpoints)
 - [Prerequisites](#-prerequisites)
 - [Installation & Setup](#-installation--setup)
 - [Usage](#-usage)
@@ -38,15 +40,15 @@
 
 ## 🔎 Overview
 
-The **Enterprise Data Analyst Agent** removes the SQL barrier between people and their data. Instead of writing queries, a user asks a question such as *"Which product category had the highest sales?"*. The AI engine converts it into a SQL query, the backend executes it on the database, and the result is shown in the chat interface.
+The **Enterprise Data Analyst Agent** removes the SQL barrier between people and their data. A user imports a CSV file, asks a question such as *"Which product category generated the highest total profit?"*, and gets a short plain-English answer, plus a bar chart when the result is numeric.
 
 The project is split into three decoupled parts:
 
-- **Frontend** – a fast, responsive chat interface built with React and Vite.
-- **Backend** – a high-performance REST API built with FastAPI.
-- **AI engine** – LangChain with the Groq API for rapid natural-language processing and SQL generation.
+- **Frontend** – a React and Vite chat interface with drag-and-drop CSV import, Recharts charts, voice input, and spoken answers.
+- **Backend** – a FastAPI REST API that handles CSV uploads and chat requests.
+- **AI agent** – a LangGraph workflow, powered by LangChain and the Groq API, that reads the dataset schema, generates SQL, validates it, executes it, corrects its own errors, and writes the answer.
 
-The agent is **dataset-agnostic**: it detects the structure of whichever dataset is loaded into the SQLite database and builds its prompts from that schema, so no code changes are needed to analyze a different dataset. The Superstore sales dataset is included as a demo. Docker Compose starts the entire environment with a single command.
+The agent is **dataset-agnostic**. Uploaded data is stored in SQLite, and the agent reads the table and column names at runtime, so no code changes are needed to analyze a different dataset. The Superstore sales dataset is included as a demo. Docker Compose starts the whole environment with one command.
 
 The longer-term goal is a true *enterprise* analyst that can also read corporate financial PDFs such as 10-K reports. See the [Roadmap](#-roadmap-financial-document-rag).
 
@@ -55,9 +57,9 @@ The longer-term goal is a true *enterprise* analyst that can also read corporate
 ## 📸 Screenshots
 
 <!-- TODO: Add screenshots to the repo (for example in a docs/ folder) and replace the placeholders below:
-| Chat Interface | Generated SQL & Result | Swagger UI |
+| Dashboard & Import | Answer with Chart | Swagger UI |
 |:---:|:---:|:---:|
-| ![Chat](docs/chat.png) | ![Result](docs/result.png) | ![Swagger](docs/swagger.png) |
+| ![Dashboard](docs/dashboard.png) | ![Chart](docs/chart.png) | ![Swagger](docs/swagger.png) |
 -->
 
 *Screenshots coming soon.*
@@ -66,13 +68,15 @@ The longer-term goal is a true *enterprise* analyst that can also read corporate
 
 ## ✨ Key Features
 
-- **Natural language to SQL** – chat with your data. The AI engine translates conversational questions into precise SQL queries.
-- **Works with any dataset** – the schema is detected automatically, so the same agent can answer questions about any tabular dataset you load.
-- **Dynamic query execution** – generated SQL runs against the database and the results come back in the chat.
-- **Decoupled microservices** – clean separation of concerns between the React frontend and the FastAPI backend.
-- **Fast LLM inference** – the Groq API gives low-latency responses through LangChain.
-- **Interactive API docs** – auto-generated Swagger UI for easy backend endpoint testing.
-- **One-click deployment** – a single Docker command spins up the whole environment, handling networking and dependencies.
+- **Natural language to SQL** – chat with your data; the LLM translates questions into SQLite queries.
+- **Works with any CSV** – drag and drop a file; column names are cleaned and the schema is detected automatically.
+- **Self-correcting queries** – if a query fails, the error is sent back to the model and the query is rewritten, up to 3 attempts.
+- **SQL safety guardrail** – only read-only `SELECT` / `WITH` queries run; destructive commands such as `DROP`, `DELETE`, `UPDATE`, and `INSERT` are blocked.
+- **Automatic charts** – when the result has a numeric column, the agent returns a chart configuration and the frontend draws a bar chart with Recharts.
+- **Plain-English answers** – results are summarized for non-technical users, without SQL or column names.
+- **Voice input and spoken answers** – speak your question and hear the answer, using the browser Web Speech API (best in Chrome or Edge).
+- **Interactive API docs** – auto-generated Swagger UI for testing the backend.
+- **One-command deployment** – Docker Compose builds and starts both services.
 
 ---
 
@@ -80,10 +84,10 @@ The longer-term goal is a true *enterprise* analyst that can also read corporate
 
 | Layer | Technologies |
 |---|---|
-| **Frontend** | React, Vite, JavaScript/JSX (Node 20) |
-| **Backend** | Python 3, FastAPI, Uvicorn |
-| **AI / LLM** | LangChain, Groq API |
-| **Database** | SQLite (any dataset; Superstore sample included) |
+| **Frontend** | React, Vite, JavaScript/JSX, Tailwind CSS classes, Recharts, react-dropzone, lucide-react, Web Speech API |
+| **Backend** | Python 3, FastAPI, Uvicorn, Pydantic, Pandas, SQLAlchemy |
+| **AI / LLM** | LangGraph, LangChain (`langchain-groq`), Groq API (`openai/gpt-oss-120b`, temperature 0) |
+| **Database** | SQLite (`data.db`) |
 | **DevOps** | Docker, Docker Compose |
 
 ---
@@ -91,20 +95,21 @@ The longer-term goal is a true *enterprise* analyst that can also read corporate
 ## 🧱 System Architecture
 
 ```
-┌────────────────────────┐        HTTP / JSON        ┌──────────────────────────┐
+┌────────────────────────┐   /api/upload (CSV)       ┌──────────────────────────┐
 │   Frontend (React)     │ ────────────────────────► │      FastAPI Backend     │
-│  • Vite dev/build      │                           │  • REST endpoints        │
-│  • Chat interface      │ ◄──────────────────────── │  • Request validation    │
-└────────────────────────┘      answer / results     │  • Swagger UI at /docs   │
-                                                     └───────┬───────────┬──────┘
+│  • CSV drag & drop     │   /api/chat (question)    │  main.py                 │
+│  • Chat + Recharts     │ ────────────────────────► │  • Pydantic validation   │
+│  • Voice in / out      │ ◄──────────────────────── │  • CORS, Swagger /docs   │
+└────────────────────────┘    text + chart messages  └───────┬───────────┬──────┘
                                                              │           │
-                                              run SQL        │           │  question + schema
-                                                    ┌────────▼───────┐ ┌─▼──────────────────┐
-                                                    │ SQLite         │ │ LangChain + Groq   │
-                                                    │ (dataset)      │ │ (SQL generation)   │
-                                                    └────────────────┘ └────────────────────┘
+                                         CSV → table         │           │  question
+                                                    ┌────────▼───────┐ ┌─▼───────────────────────┐
+                                                    │ SQLite         │ │ LangGraph agent         │
+                                                    │ data.db        │◄┤ agent.py                │
+                                                    │ uploaded_data  │ │ LangChain + Groq LLM    │
+                                                    └────────────────┘ └─────────────────────────┘
 
-        All services are containerized and started together with Docker Compose.
+        Frontend and backend are containerized and started together with Docker Compose.
 ```
 
 ---
@@ -113,16 +118,16 @@ The longer-term goal is a true *enterprise* analyst that can also read corporate
 
 ```
 Enterprise-Data-Analyst-Agent/
-├── backend/                    # FastAPI API + AI engine
-│   ├── main.py                 # FastAPI endpoints
-│   ├── agent.py                # LangChain + Groq natural-language-to-SQL logic
-│   ├── load_csv.py             # Loads a CSV dataset into SQLite
+├── backend/                    # FastAPI API + AI agent
+│   ├── main.py                 # FastAPI endpoints (/api/upload, /api/chat)
+│   ├── agent.py                # LangGraph agent: schema → SQL → validate → execute → chart → answer
+│   ├── load_csv.py             # Script for loading a CSV into SQLite
 │   ├── init.sql                # Database initialization script
 │   ├── superstore.csv          # Sample dataset
 │   ├── requirements.txt        # Python dependencies
 │   └── Dockerfile              # Backend container image
 ├── frontend/                   # React + Vite user interface
-│   ├── src/                    # React components
+│   ├── src/                    # React components (App.jsx)
 │   ├── index.html
 │   ├── package.json            # Node dependencies
 │   └── Dockerfile              # Frontend container image
@@ -133,18 +138,34 @@ Enterprise-Data-Analyst-Agent/
 
 ---
 
-## 🤖 How Natural Language to SQL Works
+## 🤖 How the Agent Works
 
-| Step | What happens |
-|---|---|
-| **1. Question** | The user types a question in the React chat interface |
-| **2. Request** | The frontend sends it to the FastAPI backend over REST |
-| **3. Prompting** | LangChain combines the question with the database schema and sends it to the LLM via Groq |
-| **4. SQL generation** | The LLM returns a SQL query that answers the question |
-| **5. Execution** | The backend runs the query on SQLite and collects the rows |
-| **6. Response** | The result is returned as JSON and displayed in the chat |
+The agent is a LangGraph state graph. Each node reads and updates a shared state (question, schema, SQL, errors, results, chart config).
 
-> ⚠️ LLM-generated SQL should be treated with care. Use a read-only database connection, or validate queries before execution, when working with data you cannot afford to modify.
+| Step | Node | What happens |
+|---|---|---|
+| 1 | `retrieve_schema` | Reads table and column names directly from SQLite (`sqlite_master`, `PRAGMA table_info`) |
+| 2 | `generate_sql` | The LLM writes a SQLite query from the schema and question; earlier errors are included in the prompt |
+| 3 | `validate_sql` | Guardrail: allows only `SELECT` / `WITH`, blocks destructive commands. Unsafe queries skip execution |
+| 4 | `execute_sql` | Runs the query with SQLAlchemy and Pandas. On failure, loops back to step 2 (max 3 attempts) |
+| 5 | `generate_chart_config` | The LLM decides whether a chart makes sense and returns type, axes, and title as JSON |
+| 6 | `generate_english_response` | The LLM turns the result into a short, non-technical answer |
+
+The API then returns a list of messages (a text answer and, if applicable, a chart) which the frontend renders and reads aloud.
+
+> ⚠️ The guardrail uses keyword checks. For sensitive data, also use a read-only database connection.
+
+---
+
+## 🔌 API Endpoints
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| `POST` | `/api/upload` | Upload a CSV file. Columns are cleaned (for example `Order Date` → `order_date`) and the data replaces the `uploaded_data` table in `data.db` |
+| `POST` | `/api/chat` | Send `{ "message": "...", "dataset_name": "..." }` and receive `{ "responses": [...] }` with text and chart messages |
+| `GET` | `/docs` | Interactive Swagger UI |
+
+> Importing a new CSV replaces the previously loaded dataset.
 
 ---
 
@@ -155,9 +176,9 @@ Enterprise-Data-Analyst-Agent/
 | **Docker Desktop** | Installed and **running** |
 | **Groq API key** | Get one from the [Groq console](https://console.groq.com/keys) |
 | **Git** | To clone the repository |
-| **Web browser** | Any modern browser |
+| **Web browser** | Chrome or Edge recommended (voice features) |
 
-Python and Node.js are only needed if you run the services outside Docker (the frontend runs on Node 20).
+Python 3 and Node.js 20 are only needed if you run the services without Docker.
 
 ---
 
@@ -172,22 +193,17 @@ cd Enterprise-Data-Analyst-Agent
 
 ### 2. Add your Groq API key
 
-Provide your key to the backend, for example through an environment file:
+Create `backend/.env` (never commit this file):
 
 ```bash
-# backend/.env  (never commit this file)
 GROQ_API_KEY=your_groq_api_key_here
 ```
-
-> 📝 Use the variable name and file location your backend actually reads, and update this step to match.
 
 ### 3. Build and start everything
 
 ```bash
 docker compose up --build
 ```
-
-This builds the frontend and backend images, sets up networking, and starts both services.
 
 ### 4. Open the application
 
@@ -197,25 +213,37 @@ This builds the frontend and backend images, sets up networking, and starts both
 | Backend API | `http://localhost:8000` |
 | Swagger UI | `http://localhost:8000/docs` |
 
-> 📝 These are the usual Vite and FastAPI ports. Check `docker-compose.yml` and change them here if yours differ.
-
 ### 5. Stop the application
 
 ```bash
 docker compose down
 ```
 
+### Running without Docker (optional)
+
+```bash
+# Backend
+cd backend
+pip install -r requirements.txt
+python main.py
+
+# Frontend (in a second terminal)
+cd frontend
+npm install
+npm run dev
+```
+
 ---
 
 ## 💡 Usage
 
-1. **Open the frontend** in your browser.
-2. **Ask a question** about the dataset in plain English, for example:
-   - *"How many products are in each category?"*
-   - *"What are the top 5 best-selling items?"*
-   - *"What was the total revenue last month?"*
-3. **Read the answer** returned in the chat.
-4. **Test the API directly** by opening Swagger UI at `/docs` and trying the endpoints.
+1. **Import a dataset** – drag a CSV file (for example `backend/superstore.csv`) into the sidebar.
+2. **Ask a question** – type it, or click the microphone and speak. For example:
+   - *"Which product category generated the highest total profit?"*
+   - *"Show total sales by region."*
+   - *"How many orders were placed in each year?"*
+3. **Read or listen to the answer** – a short explanation appears, and a bar chart is added when the result is numeric.
+4. **Test the API directly** – open Swagger UI at `/docs`.
 
 ---
 
@@ -223,12 +251,14 @@ docker compose down
 
 | Setting | Location | Default / Notes |
 |---|---|---|
-| Groq API key | Environment variable / `.env` | Required for the LLM to respond |
-| Frontend / backend ports | `docker-compose.yml` | Update the README if you change them |
-| Database | SQLite file in `backend/` | Replace it to analyze your own dataset |
-| LLM model | Backend AI engine code | Any model available on Groq |
+| Groq API key | `backend/.env` | `GROQ_API_KEY`, required |
+| LLM model | `backend/agent.py` | `openai/gpt-oss-120b`, temperature 0 |
+| Max SQL retries | `backend/agent.py` | 3 attempts |
+| Allowed frontend origin (CORS) | `backend/main.py` | `http://localhost:5173` |
+| Ports | `docker-compose.yml` | Backend `8000`, frontend `5173` |
+| Database file | `backend/data.db` | SQLite, table `uploaded_data` |
 
-> 🔐 **Security tip:** never commit your API key. Keep it in a `.env` file that is listed in `.gitignore`.
+> 🔐 **Security tip:** never commit your API key. Keep it in `backend/.env`, which should be listed in `.gitignore`.
 
 ---
 
@@ -237,17 +267,19 @@ docker compose down
 | Problem | Likely cause | Fix |
 |---|---|---|
 | `docker compose` can't connect to the Docker daemon | Docker Desktop is not running | Start Docker Desktop and retry |
-| Backend returns an authentication error | Missing or invalid Groq API key | Check the key and restart the containers |
-| `Port is already allocated` | Another service uses the port | Stop that service or change the port in `docker-compose.yml` |
-| Frontend loads but gets no answers | Backend not reachable | Run `docker compose logs backend` and check for errors |
-| Wrong or failing SQL | The model misread the schema or question | Rephrase the question and make it more specific |
-| Changes don't appear after editing code | Stale image | Rebuild with `docker compose up --build` |
+| "Failed to connect to backend server" alert on upload | Backend not running on port 8000 | Check `docker compose logs backend` |
+| Authentication error from the model | Missing or invalid Groq API key | Check `GROQ_API_KEY` in `backend/.env` and restart |
+| CORS error in the browser console | Frontend served from a different origin | Add that origin to `allow_origins` in `backend/main.py` |
+| Answer says "I couldn't complete your request" | The generated SQL kept failing, or was blocked by the guardrail | Rephrase the question and make it more specific |
+| Chat input is disabled | No dataset imported yet | Import a CSV file first |
+| Voice input does nothing | Browser does not support speech recognition | Use Chrome or Edge |
+| `Port is already allocated` | Another service uses 8000 or 5173 | Stop that service or change the port in `docker-compose.yml` |
 
 ---
 
 ## 🔮 Roadmap: Financial Document RAG
 
-The next phase extends the agent from structured databases to unstructured corporate documents such as 10-K reports, which contain dense text, nested tables, and graphs.
+The next phase extends the agent from structured CSV data to unstructured corporate documents such as 10-K reports, which contain dense text, nested tables, and graphs.
 
 - **PDF ingestion** – parse financial filings into text, tables, and images.
 - **Vision-Language Model captioning** – send charts and graphs to a VLM so visual content becomes searchable text.
@@ -258,9 +290,10 @@ The next phase extends the agent from structured databases to unstructured corpo
 
 Other ideas:
 
-- **Read-only SQL guardrails** – validate generated queries before they run.
-- **Bring your own data** – upload CSV or database files from the interface.
-- **Charts** – return visualizations alongside tabular answers.
+- **Stronger SQL safety** – a read-only connection and a SQL parser instead of keyword checks.
+- **Multi-table datasets** – several CSV files and joins instead of a single replaceable table.
+- **More chart types** – line and pie charts.
+- **Conversation memory** – follow-up questions that refer to earlier answers.
 - **Cloud deployment** – host the containers on AWS or Google Cloud.
 
 ---
