@@ -46,7 +46,7 @@ The project is split into three decoupled parts:
 - **Backend** – a high-performance REST API built with FastAPI.
 - **AI engine** – LangChain with the Groq API for rapid natural-language processing and SQL generation.
 
-A SQLite database holds the dataset (a supermarket dataset is used for the demo), and Docker Compose starts the entire environment with a single command.
+The agent is **dataset-agnostic**: it detects the structure of whichever dataset is loaded into the SQLite database and builds its prompts from that schema, so no code changes are needed to analyze a different dataset. The Superstore sales dataset is included as a demo. Docker Compose starts the entire environment with a single command.
 
 The longer-term goal is a true *enterprise* analyst that can also read corporate financial PDFs such as 10-K reports. See the [Roadmap](#-roadmap-financial-document-rag).
 
@@ -67,6 +67,7 @@ The longer-term goal is a true *enterprise* analyst that can also read corporate
 ## ✨ Key Features
 
 - **Natural language to SQL** – chat with your data. The AI engine translates conversational questions into precise SQL queries.
+- **Works with any dataset** – the schema is detected automatically, so the same agent can answer questions about any tabular dataset you load.
 - **Dynamic query execution** – generated SQL runs against the database and the results come back in the chat.
 - **Decoupled microservices** – clean separation of concerns between the React frontend and the FastAPI backend.
 - **Fast LLM inference** – the Groq API gives low-latency responses through LangChain.
@@ -82,7 +83,7 @@ The longer-term goal is a true *enterprise* analyst that can also read corporate
 | **Frontend** | React, Vite, JavaScript/JSX (Node 20) |
 | **Backend** | Python 3, FastAPI, Uvicorn |
 | **AI / LLM** | LangChain, Groq API |
-| **Database** | SQLite (Supermarket dataset) |
+| **Database** | SQLite (any dataset; Superstore sample included) |
 | **DevOps** | Docker, Docker Compose |
 
 ---
@@ -112,14 +113,23 @@ The longer-term goal is a true *enterprise* analyst that can also read corporate
 
 ```
 Enterprise-Data-Analyst-Agent/
-├── backend/                    # FastAPI app, LangChain/Groq logic, SQLite database
+├── backend/                    # FastAPI API + AI engine
+│   ├── main.py                 # FastAPI endpoints
+│   ├── agent.py                # LangChain + Groq natural-language-to-SQL logic
+│   ├── load_csv.py             # Loads a CSV dataset into SQLite
+│   ├── init.sql                # Database initialization script
+│   ├── superstore.csv          # Sample dataset
+│   ├── requirements.txt        # Python dependencies
+│   └── Dockerfile              # Backend container image
 ├── frontend/                   # React + Vite user interface
+│   ├── src/                    # React components
+│   ├── index.html
+│   ├── package.json            # Node dependencies
+│   └── Dockerfile              # Frontend container image
 ├── docker-compose.yml          # Runs the frontend and backend together
 ├── .gitignore
 └── README.md                   # Project documentation
 ```
-
-> 📝 Expand this tree with the individual files inside `backend/` and `frontend/` if you want a more detailed view.
 
 ---
 
